@@ -2,6 +2,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from .memory import Memory
 from .pipeline import answer, ingest
 
 
@@ -30,6 +31,30 @@ def _cmd_query(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_chat(args: argparse.Namespace) -> int:
+    memory = Memory()
+    print("type your question, or /exit, /reset")
+    while True:
+        try:
+            q = input("> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if not q:
+            continue
+        if q in ("/exit", "/quit"):
+            break
+        if q == "/reset":
+            memory = Memory()
+            print("memory cleared")
+            continue
+        res = answer(q, Path(args.index_dir), memory=memory)
+        print()
+        _print_result(res)
+        print()
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="bss")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -39,10 +64,14 @@ def main(argv: list[str] | None = None) -> int:
     pi.add_argument("--index-dir", default="storage")
     pi.set_defaults(func=_cmd_ingest)
 
-    pq = sub.add_parser("query", help="ask a question")
+    pq = sub.add_parser("query", help="ask a question (one-shot, no memory)")
     pq.add_argument("question")
     pq.add_argument("--index-dir", default="storage")
     pq.set_defaults(func=_cmd_query)
+
+    pc = sub.add_parser("chat", help="interactive REPL with conversation memory")
+    pc.add_argument("--index-dir", default="storage")
+    pc.set_defaults(func=_cmd_chat)
 
     args = p.parse_args(argv)
     return args.func(args)

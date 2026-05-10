@@ -61,8 +61,10 @@ def format_context(hits: list[Hit]) -> str:
 
 def build_messages(
     question: str,
-    hits: list[Hit]
+    hits: list[Hit],
+    history: list[dict] | None = None,
 ) -> list[dict]:
     ctx = format_context(hits) if hits else "(no context retrieved)"
     user = f"CONTEXT:\n{ctx}\n\nQUESTION: {question}\n\nAnswer:"
-    return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}]
+    history = history or []
+    return [{ "role": "system", "content": SYSTEM }, *history, { "role": "user", "content": user }]

@@ -5,6 +5,7 @@ from .config import CFG
 from .embedder import Embedder
 from .llm import LLM
 from .loaders import load_path
+from .memory import Memory
 from .prompt import build_messages
 from .retriever import Retriever
 from .vectorstore import FaissStore
@@ -31,6 +32,7 @@ def ingest(paths: list[Path], index_dir: Path = CFG.index_dir) -> int:
 def answer(
     question: str,
     index_dir: Path = CFG.index_dir,
+    memory: Memory | None = None,
 ) -> dict:
     store = FaissStore.load(index_dir)
     embedder = Embedder(CFG.embed_model)
@@ -41,13 +43,23 @@ def answer(
     retriever = Retriever(embedder, store, CFG.top_k, CFG.score_threshold)
 
     retrieval_query = question
+    history_msgs: list[dict] = []
+    if memory is not None:
+        hint = memory.retrieval_hint(CFG.history_query_chars)
+        if hint:
+            retrieval_query = f"{question}\n{hint}"
+        history_msgs = memory.history_messages()
 
     hits = retriever.retrieve(retrieval_query)
 
     if not hits:
         out = REFUSAL
     else:
-        msgs = build_messages(question, hits)
+        msgs = build_messages(question, hits, history=history_msgs)
         out = LLM().generate(msgs)
+
+    if memory is not None:
+        memory.add_user(question)
+        memory.add_assistant(out)
 
     return {"answer": out, "hits": hits}
