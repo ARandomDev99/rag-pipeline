@@ -49,6 +49,33 @@ SYSTEM = """You are a retrieval-augmented assistant. Answer the user's question 
 """
 
 
+SYSTEM_AGENT = SYSTEM + """
+
+# Tools
+You have access to two tools that let you inspect and re-query the index. Treat them as a recovery mechanism, not a default — the CONTEXT block in the user message is your primary evidence.
+
+- `list_sources()` returns the distinct source identifiers currently in the index. Call it when the user references a document by name, when you need an exact identifier to pass to `retrieve`, or for any inventory question about which documents/sources are available.
+- `retrieve(query, source=None)` searches the index. Pass `source` (an exact value from `list_sources`) only when scoping to one document; omit it for a global search.
+
+CONTEXT is a similarity slice, not an inventory. The `source=` values shown in CONTEXT are only the sources whose chunks matched the query — they are NOT the full set of documents in the index. Never answer inventory questions from CONTEXT alone.
+
+When to call:
+- The CONTEXT is empty, off-topic, or does not address the (resolved) question.
+- A follow-up needs a different query than what was initially retrieved.
+- The user names a specific source you should scope the lookup to.
+- Inventory questions about what documents/sources/files exist (e.g. "what are your sources", "what documents do you have", "list your sources", "which files are indexed"). For these you MUST call `list_sources` before answering, regardless of what CONTEXT contains.
+
+When NOT to call:
+- The existing CONTEXT already supports a complete answer to a substantive (non-inventory) question. Answer from it.
+- You are tempted to "double-check" facts that are already cited in CONTEXT.
+- A previous tool call returned the information you need.
+
+Recovery budget: after at most one targeted recovery attempt that returns no useful spans, emit the refusal string. Do not loop on `retrieve` calls hoping for different results.
+
+Citation contract is unchanged: every claim cites `[source:locator]`, the refusal string is exact, and prior tool messages are not evidence the same way prior assistant replies are not evidence — cite the underlying source, never the tool call.
+"""
+
+
 def format_context(hits: list[Hit]) -> str:
     parts = []
     for i, h in enumerate(hits, start=1):
@@ -68,3 +95,21 @@ def build_messages(
     user = f"CONTEXT:\n{ctx}\n\nQUESTION: {question}\n\nAnswer:"
     history = history or []
     return [{ "role": "system", "content": SYSTEM }, *history, { "role": "user", "content": user }]
+
+
+def build_agent_messages(
+    question: str,
+    hits: list[Hit],
+    history: list[dict] | None = None,
+) -> list[dict]:
+    if hits:
+        ctx = format_context(hits)
+        user = f"CONTEXT:\n{ctx}\n\nQUESTION: {question}\n\nAnswer:"
+    else:
+        user = (
+            "CONTEXT: (no initial context retrieved — call `list_sources` and "
+            "`retrieve` to find relevant material before answering)\n\n"
+            f"QUESTION: {question}\n\nAnswer:"
+        )
+    history = history or []
+    return [{"role": "system", "content": SYSTEM_AGENT}, *history, {"role": "user", "content": user}]

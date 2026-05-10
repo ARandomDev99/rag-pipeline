@@ -13,7 +13,7 @@ class Config:
         self.chunk_overlap: int = 120
         self.top_k: int = 4
         self.score_threshold: float = 0.30
-        self.llm_model: str = "openrouter/free"
+        self.llm_model: str = "openrouter/owl-alpha"
         self.llm_fallback: str = "deepseek/deepseek-v4-flash"
         self.openai_base_url: str = "https://openrouter.ai/api/v1"
         self.referer: str = "https://github.com/ARandomDev99/bss"
@@ -21,6 +21,8 @@ class Config:
         self.index_dir: Path = Path("storage")
         self.memory_window_turns: int = 6
         self.history_query_chars: int = 400
+        self.agent_max_steps: int = 5
+        self.agent_retrieve_overshoot: int = 4
         self.openai_api_key = os.environ.get("OPENAI_API_KEY")
         if not self.openai_api_key:
             raise RuntimeError("OPENAI_API_KEY not set")

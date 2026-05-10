@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 from .memory import Memory
-from .pipeline import answer, ingest
+from .pipeline import agent_answer, answer, ingest
 
 
 def _cmd_ingest(args: argparse.Namespace) -> int:
@@ -26,12 +26,14 @@ def _print_result(res: dict) -> None:
 
 
 def _cmd_query(args: argparse.Namespace) -> int:
-    res = answer(args.question, Path(args.index_dir))
+    fn = agent_answer if args.agent else answer
+    res = fn(args.question, Path(args.index_dir))
     _print_result(res)
     return 0
 
 
 def _cmd_chat(args: argparse.Namespace) -> int:
+    fn = agent_answer if args.agent else answer
     memory = Memory()
     print("type your question, or /exit, /reset")
     while True:
@@ -48,7 +50,7 @@ def _cmd_chat(args: argparse.Namespace) -> int:
             memory = Memory()
             print("memory cleared")
             continue
-        res = answer(q, Path(args.index_dir), memory=memory)
+        res = fn(q, Path(args.index_dir), memory=memory)
         print()
         _print_result(res)
         print()
@@ -67,10 +69,20 @@ def main(argv: list[str] | None = None) -> int:
     pq = sub.add_parser("query", help="ask a question (one-shot, no memory)")
     pq.add_argument("question")
     pq.add_argument("--index-dir", default="storage")
+    pq.add_argument(
+        "--agent",
+        action="store_true",
+        help="enable tool-calling agent loop (list_sources, retrieve)",
+    )
     pq.set_defaults(func=_cmd_query)
 
     pc = sub.add_parser("chat", help="interactive REPL with conversation memory")
     pc.add_argument("--index-dir", default="storage")
+    pc.add_argument(
+        "--agent",
+        action="store_true",
+        help="enable tool-calling agent loop (list_sources, retrieve)",
+    )
     pc.set_defaults(func=_cmd_chat)
 
     args = p.parse_args(argv)
