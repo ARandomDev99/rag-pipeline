@@ -2,8 +2,17 @@ import argparse
 import sys
 from pathlib import Path
 
+from .config import CFG
+from .embedder import download_model
 from .memory import Memory
 from .pipeline import agent_answer, answer, ingest
+
+
+def _cmd_download(args: argparse.Namespace) -> int:
+    print(f"downloading {CFG.embed_model} into local HuggingFace cache ...")
+    download_model(CFG.embed_model)
+    print("done")
+    return 0
 
 
 def _cmd_ingest(args: argparse.Namespace) -> int:
@@ -60,6 +69,9 @@ def _cmd_chat(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="bss")
     sub = p.add_subparsers(dest="cmd", required=True)
+
+    pd = sub.add_parser("download", help="fetch the embedding model into the local cache (needs network)")
+    pd.set_defaults(func=_cmd_download)
 
     pi = sub.add_parser("ingest", help="index files/dirs")
     pi.add_argument("paths", nargs="+")

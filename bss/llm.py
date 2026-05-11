@@ -8,6 +8,8 @@ from .config import CFG
 
 class LLM:
     def __init__(self) -> None:
+        if not CFG.openai_api_key:
+            raise RuntimeError("OPENAI_API_KEY not set")
         self.client = OpenAI(
             base_url=CFG.openai_base_url,
             api_key=CFG.openai_api_key,

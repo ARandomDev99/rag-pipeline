@@ -24,8 +24,6 @@ class Config:
         self.agent_max_steps: int = 5
         self.agent_retrieve_overshoot: int = 4
         self.openai_api_key = os.environ.get("OPENAI_API_KEY")
-        if not self.openai_api_key:
-            raise RuntimeError("OPENAI_API_KEY not set")
 
 
 CFG = Config()
