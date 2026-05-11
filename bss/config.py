@@ -13,8 +13,8 @@ class Config:
         self.chunk_overlap: int = 120
         self.top_k: int = 4
         self.score_threshold: float = 0.30
-        self.llm_model: str = "openrouter/owl-alpha"
-        self.llm_fallback: str = "deepseek/deepseek-v4-flash"
+        self.llm_model: str = "deepseek/deepseek-v4-flash"
+        self.llm_fallback: str = "openrouter/owl-alpha"
         self.openai_base_url: str = "https://openrouter.ai/api/v1"
         self.referer: str = "https://github.com/ARandomDev99/bss"
         self.title: str = "bss-rag"

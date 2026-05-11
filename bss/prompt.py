@@ -56,6 +56,8 @@ You have access to two tools that let you inspect and re-query the index. Treat 
 
 - `list_sources()` returns the distinct source identifiers currently in the index. Call it when the user references a document by name, when you need an exact identifier to pass to `retrieve`, or for any inventory question about which documents/sources are available.
 - `retrieve(query, source=None)` searches the index. Pass `source` (an exact value from `list_sources`) only when scoping to one document; omit it for a global search.
+- `keyword_search(pattern, source=None)` is a case-insensitive substring scan over chunk text. Use it for EXACT tokens that semantic retrieval under-ranks: identifiers (e.g. `PMC7501458`), numbers, dosages (`200 mg`), table/section labels (`Table 3`, `section 4.2`), named entities. Do NOT use it for paraphrased or synonym queries — `retrieve` is better for those.
+- `get_neighbors(source, locator, before=1, after=1)` returns chunks adjacent to a given `(source, locator)` within the same base locator (same page for PDFs, same row for CSVs, same file for TXT). Use it ONLY to clarify a chunk you already have when its claim hinges on context that appears cut off mid-sentence. Adjacency does not cross page/record boundaries. Not a browse tool — do not call to explore unrelated material.
 
 CONTEXT is a similarity slice, not an inventory. The `source=` values shown in CONTEXT are only the sources whose chunks matched the query — they are NOT the full set of documents in the index. Never answer inventory questions from CONTEXT alone.
 

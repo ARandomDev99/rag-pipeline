@@ -124,6 +124,10 @@ def agent_answer(
                 {"role": "tool", "tool_call_id": tc.id, "content": result_json}
             )
 
+    if not final_text and all_hits:
+        final_msgs = build_messages(question, all_hits, history=history_msgs)
+        final_text = llm.generate(final_msgs)
+
     if not final_text:
         final_text = REFUSAL
 
