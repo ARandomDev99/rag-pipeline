@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     pq.add_argument(
         "--agent",
         action="store_true",
-        help="enable tool-calling agent loop (list_sources, retrieve)",
+        help="enable tool-calling agent loop (list_sources, retrieve, keyword_search, get_neighbors)",
     )
     pq.set_defaults(func=_cmd_query)
 
@@ -93,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:
     pc.add_argument(
         "--agent",
         action="store_true",
-        help="enable tool-calling agent loop (list_sources, retrieve)",
+        help="enable tool-calling agent loop (list_sources, retrieve, keyword_search, get_neighbors)",
     )
     pc.set_defaults(func=_cmd_chat)
 
