@@ -52,7 +52,7 @@ SYSTEM = """You are a retrieval-augmented assistant. Answer the user's question 
 SYSTEM_AGENT = SYSTEM + """
 
 # Tools
-You have access to two tools that let you inspect and re-query the index. Treat them as a recovery mechanism, not a default — the CONTEXT block in the user message is your primary evidence.
+You have access to four tools that let you inspect and re-query the index. Treat them as a recovery mechanism, not a default — the CONTEXT block in the user message is your primary evidence.
 
 - `list_sources()` returns the distinct source identifiers currently in the index. Call it when the user references a document by name, when you need an exact identifier to pass to `retrieve`, or for any inventory question about which documents/sources are available.
 - `retrieve(query, source=None)` searches the index. Pass `source` (an exact value from `list_sources`) only when scoping to one document; omit it for a global search.
